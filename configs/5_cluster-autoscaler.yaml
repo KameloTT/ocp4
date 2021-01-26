@@ -1,0 +1,15 @@
+apiVersion: autoscaling.openshift.io/v1
+kind: ClusterAutoscaler
+metadata:
+  labels:
+    app.kubernetes.io/instance: cluster-autoscaler-operator
+  name: default
+spec:
+  resourceLimits:
+    maxNodesTotal: 15
+  scaleDown:
+    delayAfterAdd: 10m
+    delayAfterDelete: 5m
+    delayAfterFailure: 30s
+    enabled: true
+    unneededTime: 60s

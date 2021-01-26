@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rabbitmq-openstack
+spec:
+  ignoreDifferences:
+  - group: apps
+    name: rabbitmq
+    jsonPointers:
+    - /spec/template/spec/containers/0/image
+    kind: StatefulSet
+  destination:
+    name: ''
+    namespace: ooo-openstack
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: openstack-rabbitmq
+    repoURL: 'git@github.com:KameloTT/ooo-common.git'
+    targetRevision: HEAD
+    directory:
+      recurse: false
+  project: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

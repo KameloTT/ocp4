@@ -1,0 +1,64 @@
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: ocs-storagecluster-cephfilesystem
+  namespace: openshift-storage
+spec:
+  dataPools:
+  - compressionMode: ""
+    crushRoot: ""
+    deviceClass: ""
+    erasureCoded:
+      algorithm: ""
+      codingChunks: 0
+      dataChunks: 0
+    failureDomain: zone
+    replicated:
+      requireSafeReplicaSize: false
+      size: 3
+      targetSizeRatio: 0.49
+  metadataPool:
+    compressionMode: ""
+    crushRoot: ""
+    deviceClass: ""
+    erasureCoded:
+      algorithm: ""
+      codingChunks: 0
+      dataChunks: 0
+    failureDomain: zone
+    replicated:
+      requireSafeReplicaSize: false
+      size: 3
+      targetSizeRatio: 0
+  metadataServer:
+    activeCount: 1
+    activeStandby: true
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - rook-ceph-mds
+          topologyKey: failure-domain.beta.kubernetes.io/zone
+      tolerations:
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+    resources:
+      limits:
+        cpu: "3"
+        memory: 8Gi
+      requests:
+        cpu: "3"
+        memory: 8Gi
+  preservePoolsOnDelete: false

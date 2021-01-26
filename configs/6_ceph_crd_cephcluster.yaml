@@ -1,0 +1,299 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  labels:
+    app: ocs-storagecluster
+  name: ocs-storagecluster-cephcluster
+  namespace: openshift-storage
+spec:
+  cephVersion:
+    image: registry.redhat.io/rhceph/rhceph-4-rhel8@sha256:eafd1acb0ada5d7cf93699056118aca19ed7a22e4938411d307ef94048746cc8
+  cleanupPolicy: {}
+  continueUpgradeAfterChecksEvenIfNotHealthy: true
+  crashCollector:
+    disable: false
+  dashboard: {}
+  dataDirHostPath: /var/lib/rook
+  disruptionManagement:
+    machineDisruptionBudgetNamespace: openshift-machine-api
+    managePodBudgets: true
+  external:
+    enable: false
+  mgr:
+    modules:
+    - enabled: true
+      name: pg_autoscaler
+    - enabled: true
+      name: balancer
+  mon:
+    count: 3
+    volumeClaimTemplate:
+      metadata:
+        creationTimestamp: null
+      spec:
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: gp2
+      status: {}
+  monitoring:
+    enabled: true
+    rulesNamespace: openshift-storage
+  network:
+    hostNetwork: false
+    provider: ""
+    selectors: null
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+    mds:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - rook-ceph-mds
+          topologyKey: failure-domain.beta.kubernetes.io/zone
+      tolerations:
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+    mon:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - rook-ceph-mon
+            topologyKey: failure-domain.beta.kubernetes.io/zone
+          weight: 100
+    rgw:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - rook-ceph-rgw
+            topologyKey: failure-domain.beta.kubernetes.io/zone
+          weight: 100
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - rook-ceph-rgw
+          topologyKey: kubernetes.io/hostname
+      tolerations:
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+  rbdMirroring:
+    workers: 0
+  removeOSDsIfOutAndSafeToRemove: false
+  resources:
+    mgr:
+      limits:
+        cpu: "1"
+        memory: 3Gi
+      requests:
+        cpu: "1"
+        memory: 3Gi
+    mon:
+      limits:
+        cpu: "1"
+        memory: 2Gi
+      requests:
+        cpu: "1"
+        memory: 2Gi
+  storage:
+    config: null
+    storageClassDeviceSets:
+    - count: 1
+      name: ocs-deviceset-0
+      placement:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+              - key: failure-domain.beta.kubernetes.io/zone
+                operator: In
+                values:
+                - us-west-2c
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - rook-ceph-osd
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+            weight: 100
+        tolerations:
+        - effect: NoSchedule
+          key: node.ocs.openshift.io/storage
+          operator: Equal
+          value: "true"
+      portable: true
+      resources:
+        limits:
+          cpu: "2"
+          memory: 5Gi
+        requests:
+          cpu: "2"
+          memory: 5Gi
+      tuneDeviceClass: true
+      volumeClaimTemplates:
+      - metadata:
+          creationTimestamp: null
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 512Gi
+          storageClassName: gp2
+          volumeMode: Block
+        status: {}
+    - count: 1
+      name: ocs-deviceset-1
+      placement:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+              - key: failure-domain.beta.kubernetes.io/zone
+                operator: In
+                values:
+                - us-west-2a
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - rook-ceph-osd
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+            weight: 100
+        tolerations:
+        - effect: NoSchedule
+          key: node.ocs.openshift.io/storage
+          operator: Equal
+          value: "true"
+      portable: true
+      resources:
+        limits:
+          cpu: "2"
+          memory: 5Gi
+        requests:
+          cpu: "2"
+          memory: 5Gi
+      tuneDeviceClass: true
+      volumeClaimTemplates:
+      - metadata:
+          creationTimestamp: null
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 512Gi
+          storageClassName: gp2
+          volumeMode: Block
+        status: {}
+    - count: 1
+      name: ocs-deviceset-2
+      placement:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+              - key: failure-domain.beta.kubernetes.io/zone
+                operator: In
+                values:
+                - us-west-2b
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - rook-ceph-osd
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+            weight: 100
+        tolerations:
+        - effect: NoSchedule
+          key: node.ocs.openshift.io/storage
+          operator: Equal
+          value: "true"
+      portable: true
+      resources:
+        limits:
+          cpu: "2"
+          memory: 5Gi
+        requests:
+          cpu: "2"
+          memory: 5Gi
+      tuneDeviceClass: true
+      volumeClaimTemplates:
+      - metadata:
+          creationTimestamp: null
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 512Gi
+          storageClassName: gp2
+          volumeMode: Block
+        status: {}

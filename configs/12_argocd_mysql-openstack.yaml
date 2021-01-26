@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mysql-openstack
+spec:
+  ignoreDifferences:
+  - group: apps
+    name: mysql
+    jsonPointers:
+    - /spec/template/spec/containers/0/image
+    kind: StatefulSet
+  destination:
+    name: ''
+    namespace: ooo-openstack
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: openstack-mysql
+    repoURL: 'git@github.com:KameloTT/ooo-common.git'
+    targetRevision: HEAD
+    directory:
+      recurse: false
+  project: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
