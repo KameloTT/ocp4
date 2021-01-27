@@ -1,0 +1,11 @@
+Installation and apply best practices for OCP4 AWS
+
+creds - Config file for OCP4 Installation
+
+./1_bastion-prepare.sh - Prepare pre-existed Bastion host in AWS
+./2_create-cluster.sh - Install CLuster
+./3_applyday2ops.sh - Apply Day2Ops, Apply best practices
+./4_setup-ceph.sh - Install Ceph(Spin up additional nodes, install oeprator and cluster itself)
+./5_setup-argocd.sh - Install ArgoCD
+./6_setup-openstack.sh - Install Openshift on ArgoCD
+./99_destroy-cluster.sh - Destroy OCP4 cluster
